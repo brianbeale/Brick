@@ -1,0 +1,13 @@
+[package]
+name = "hermit-proc-macros"
+description = "Utility proc_macro crate for Hermit"
+version = "0.1.0"
+authors = ["Brian Beale <brianbeale@protonmail.com>"]
+edition = "2018"
+
+[dependencies]
+syn = "1.0"
+quote = "1.0"
+
+[lib]
+proc-macro = true
