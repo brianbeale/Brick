@@ -34,12 +34,21 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "futures",
+ "hermit-proc-macros",
  "js-sys",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",
  "web-sys",
  "wee_alloc",
+]
+
+[[package]]
+name = "hermit-proc-macros"
+version = "0.1.0"
+dependencies = [
+ "quote 1.0.3",
+ "syn",
 ]
 
 [[package]]

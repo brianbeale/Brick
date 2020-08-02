@@ -8,15 +8,15 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static SPAN_COUNTER: AtomicUsize = AtomicUsize::new(0);
 static CONTAINER_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-use crate::state_manager::{DomSubject, SpanObserver, Subject};
+use crate::state_manager::{SpanObserver, State, Subject};
 
 pub struct Span {
-    class_name: String,
-    pub text_content: DomSubject<String>,
+    pub class_name: String,
+    pub text_content: State<String>,
 }
 impl Span {
     pub fn new<T: Display>(text: &T) -> Self {
-        let mut text_content = DomSubject::new(text.to_string());
+        let mut text_content = State::new(text.to_string());
         let class_name = format!("span_{}", SPAN_COUNTER.fetch_add(1, Ordering::SeqCst));
         text_content.add_observer(&class_name, Box::new(SpanObserver::new(&class_name)));
         Span {
@@ -29,11 +29,22 @@ impl Display for Span {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let outer_html = format!(
             "<span class={}>{}</span>",
-            self.class_name, self.text_content.datum
+            self.class_name, *self.text_content
         );
         write!(f, "{}", &outer_html)
     }
 }
+
+macro_rules! tag_funcs {
+    ( $( $name:ident ),* ) => {
+        $(
+            pub fn $name(s: &str) -> String {
+                format!("<{}>{}</{}>", stringify!($name), s, stringify!($name))
+            }
+        )*
+    }
+}
+tag_funcs!(p, h1);
 
 pub struct Container {
     tag: &'static str,

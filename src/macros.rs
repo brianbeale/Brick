@@ -7,49 +7,32 @@ macro_rules! console_log {
     };
 }
 
-macro_rules! cb {
-    ( $body:expr ) => {
-        // use wasm_bindgen::JsCast;
-        Closure::wrap(Box::new($body) as Box<dyn FnMut(web_sys::Event)>)
-        // can't use here because it creates a temporary value
-        // .as_ref().unchecked_ref()
+// Prepare methods from Rc<RefCell<Model>> to be moved to JS
+macro_rules! method {
+    ( $method_name:ident, $sharing_model:expr ) => {{
+        let s = std::rc::Rc::clone(&$sharing_model);
+        Closure::wrap(
+            Box::new(move |e: web_sys::Event| s.borrow_mut().$method_name(e))
+                as Box<dyn FnMut(web_sys::Event)>,
+        )
+    }};
+}
+
+// Helper macro for attaching SpanObservers to State Subjects
+macro_rules! observe {
+    ( $subject:expr, $class_name:expr ) => {
+        $subject.add_observer(
+            $class_name,
+            Box::new(crate::state_manager::SpanObserver::new($class_name)),
+        );
     };
 }
 
-// macro_rules! wrap_text {
-//     ( $text:expr ) => {
-//         Node::Text($text)
-//     };
-// }
-
-// macro_rules! div {
-//     ( $( $child:item ),* ) => {
-//         Node::Element {
-//             tag: "div",
-//             children: vec![ $( $child ),* ],
-//         }
-//     }
-// }
-
-// expect one or many args, each of which could be str or Node (expr vs item)
-// macro_rules! h1 {
-//   ( $( $child:expr ),* ) => {
-//     Node::Element {
-//       tag: "h1",
-//       children: {
-//         $(  )*.collect()
-//       }
-//     }
-//   }
-// }
-
-// macro_rules! handle_click {
-//   ( $element:ident, $handler:expr ) => {
-//     use wasm_bindgen::JsCast;
-//     let callback = cb!{ $handler };
-//     $element.add_event_listener_with_callback("click",
-//       callback.as_ref().unchecked_ref() )?;
-//     // TODO: fix memory leak
-//     // Rust needs to forget this callback so it doesn't destroy it
-//     callback.forget();
-//   }
+// Reactive text node with format!-like interface
+macro_rules! react {
+    ( $template:expr, $subject:expr ) => {{
+        let s = crate::elements::Span::new(&$subject);
+        observe!($subject, &s.class_name);
+        &format!($template, s)
+    }};
+}

@@ -1,8 +1,5 @@
-#![allow(unused)]
-
 use crate::dom_context::DomContext;
-use crate::rendering::{CreateModel, Render, ViewManager};
-use crate::util::_print_type_of;
+use crate::rendering::{Render, ViewManager};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -14,32 +11,27 @@ pub struct Hermit {
 }
 
 impl Hermit {
-    pub fn new<T: CreateModel>(root: T) -> Self {
+    pub fn new<T: Render>(root: T) -> Self {
         Hermit {
-            root_manager: root.to_model().render(),
+            root_manager: Box::new(root).render(),
             dom_context: DomContext::new(),
         }
     }
-    pub fn run(&mut self) {
-        let callbacks = self.root_manager.mount_to_body(&self.dom_context);
-        // .expect("should be able to mount root component");
-        // loop {}
+    pub fn run(mut self) {
+        self.root_manager.mount_to_body(&self.dom_context);
+        let shared_root = Rc::new(RefCell::new(self.root_manager));
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
-
-        // _print_type_of(&callbacks[0]);
-
-        let dc = DomContext::new();
-        let mut i = 0;
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-            if i > 300 {
-                dc.body.set_text_content(Some("All done!"));
+            let _root = Rc::clone(&shared_root);
+            // if i > 300 {
+            //     dc.body.set_text_content(Some("All done!"));
 
-                // Drop our handle to this closure so that it will get cleaned
-                // up once we return.
-                let _ = f.borrow_mut().take();
-                return;
-            }
+            //     // Drop our handle to this closure so that it will get cleaned
+            //     // up once we return.
+            //     let _ = f.borrow_mut().take();
+            //     return;
+            // }
             // Set the body's text content to how many times this
             // requestAnimationFrame callback has fired.
             // i += 1;

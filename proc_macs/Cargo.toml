@@ -6,8 +6,16 @@ authors = ["Brian Beale <brianbeale@protonmail.com>"]
 edition = "2018"
 
 [dependencies]
-syn = "1.0"
+# syn = "1.0"
 quote = "1.0"
+# proc_macro2 = "latest"
 
 [lib]
 proc-macro = true
+
+[dependencies.syn]
+version = "1.0"
+features = [
+    "parsing",
+    "full"
+]

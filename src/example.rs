@@ -21,7 +21,7 @@ impl Model {
     }
 }
 
-// TODO: #[Handlers]/#[Controller]
+// /#[Controller]
 impl Model {
     fn button_click(&mut self, e: web_sys::Event) {
         set!(count += 1); // expands to: self.count.publish(self.count+1);

@@ -1,39 +1,81 @@
-use proc_macro::{Literal, TokenStream};
-use quote::{format_ident, quote};
-use syn::parse::{Parse, ParseStream};
-// use syn::proc_macro2::Literal;
-use syn::{parse_macro_input, Result};
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{parse_macro_input, Ident, ImplItem, ItemImpl, ItemStruct, Type};
 
-// struct MyMacroInput {
-//     /* ... */
-//     value: String,
-// }
+#[proc_macro_attribute]
+pub fn controller(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let impl_input = parse_macro_input!(item as ItemImpl);
+    let model_name = *impl_input.self_ty.clone();
 
-// impl Parse for MyMacroInput {
-//     fn parse(input: ParseStream) -> Result<Self> {
-//         /* ... */
-//         Ok(MyMacroInput {
-//             value: syn::parse(input)?,
-//         })
-//     }
-// }
+    let methods = impl_input.items.iter();
+    let method_idents: Vec<Ident> = methods
+        .filter_map(|x| {
+            if let ImplItem::Method(meth) = x {
+                Some(meth)
+            } else {
+                None
+            }
+        })
+        .map(|x| x.sig.ident.clone())
+        .collect();
 
-#[proc_macro]
-pub fn my_macro(tokens: TokenStream) -> TokenStream {
-    // Parse the input tokens into a syntax tree
-    let input: Literal = syn::parse(tokens).unwrap();
-
-    // let func_name = format_ident!("{}", input);
-    let func_name = syn::Ident::new(TokenTree::from(&input), tokens.span());
-
-    // Build the output, possibly using quasi-quotation
     let expanded = quote! {
-        pub fn #func_name<T: NodeWrap>(inner: T) -> Node {
-            Node::new(#input, inner)
+        #impl_input
+
+        impl #model_name {
+            pub fn controller_methods(self) -> std::collections::HashMap<&'static str, (&'static str, Closure<dyn FnMut(web_sys::Event)>)> {
+                let mut event_listeners = std::collections::HashMap::new();
+                let sharing_model = std::rc::Rc::new(std::cell::RefCell::new(self));
+                #(
+                    event_listeners.insert(stringify!(#method_idents), ("click", method!(#method_idents, sharing_model)));
+                )*
+                event_listeners
+            }
+
         }
-        // ...
     };
 
-    // Hand the output tokens back to the compiler
     TokenStream::from(expanded)
+}
+
+#[proc_macro_derive(Model)]
+pub fn derive_model(input: TokenStream) -> TokenStream {
+    let item = parse_macro_input!(input as ItemStruct);
+    let prop_struct_name = item.ident;
+    let model_name = Ident::new(
+        &format!("{}Model", prop_struct_name),
+        prop_struct_name.span(),
+    );
+    let prop_field_names: Vec<Ident> = item
+        .fields
+        .iter()
+        .map(|x| x.ident.clone().unwrap())
+        .collect();
+
+    let prop_field_types: Vec<Type> = item.fields.iter().map(|x| x.ty.clone()).collect();
+
+    let additional = quote! {
+        pub struct #model_name {
+            #(
+                pub #prop_field_names: State<#prop_field_types>,
+            )*
+        }
+        impl #model_name {
+            pub fn new(prop_struct: &#prop_struct_name) -> Self {
+                #model_name {
+                    #(
+                        #prop_field_names: State::new(prop_struct.#prop_field_names),
+                    )*
+                }
+            }
+        }
+    };
+
+    TokenStream::from(additional)
+}
+
+#[proc_macro_attribute]
+pub fn print_item(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    println!("item: \"{}\"", item.to_string());
+    item
 }

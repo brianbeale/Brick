@@ -34,6 +34,8 @@ wee_alloc = { version = "0.4.2", optional = true }
 
 js-sys = "0.3.22"
 
+hermit-proc-macros = { path = "proc_macs" }
+
 # The `web-sys` crate allows you to interact with the various browser APIs,
 # like the DOM.
 [dependencies.web-sys]
