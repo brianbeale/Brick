@@ -6,26 +6,24 @@ extern crate js_sys;
 
 #[macro_use]
 mod macros;
-mod composites;
+mod components;
 mod dom_context;
 mod elements;
 
-#[macro_use]
-mod state_manager;
-mod rendering;
+mod state_mgmt;
 
 mod interactor;
 use interactor::Hermit;
 
-mod counter;
-use counter::Counter;
+mod examples;
+use examples::Counter;
 
 #[wasm_bindgen(start)]
 pub fn run() -> Result<(), JsValue> {
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
 
-    let h = Hermit::new(Counter { count: 0 });
+    let h = Hermit::new(Counter { count: 1 });
     h.run();
 
     Ok(())

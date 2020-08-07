@@ -8,7 +8,7 @@ pub trait Observer<T> {
 pub trait Subject<T> {
     fn update(&mut self, new_datum: T);
     fn add_observer(&mut self, name: &str, obs: Box<dyn Observer<T>>);
-    fn remove_observer(&mut self, name: &str);
+    fn remove_observer(&mut self, name: &str) -> Option<Box<dyn Observer<T>>>;
 }
 
 pub struct State<T> {
@@ -36,8 +36,8 @@ impl<T> Subject<T> for State<T> {
     fn add_observer(&mut self, class_name: &str, obs: Box<dyn Observer<T>>) {
         self.observers.insert(class_name.to_string(), obs);
     }
-    fn remove_observer(&mut self, class_name: &str) {
-        self.observers.remove(class_name);
+    fn remove_observer(&mut self, class_name: &str) -> Option<Box<dyn Observer<T>>> {
+        self.observers.remove(class_name)
     }
 }
 impl<T: Display> Display for State<T> {
@@ -73,23 +73,4 @@ impl<T: Display> Observer<T> for SpanObserver {
             .unwrap()
             .set_text_content(Some(&datum.to_string()));
     }
-}
-
-#[macro_export]
-macro_rules! set {
-    ( $subject:expr => + $change:expr ) => {
-        $subject.update(*$subject + $change);
-    };
-    ( $subject:expr => - $change:expr ) => {
-        $subject.update(*$subject - $change);
-    };
-    ( $subject:expr => * $change:expr ) => {
-        $subject.update(*$subject * $change);
-    };
-    ( $subject:expr => / $change:expr ) => {
-        $subject.update(*$subject / $change);
-    };
-    ( $subject:expr => $new_datum:expr ) => {
-        $subject.update($new_datum);
-    };
 }

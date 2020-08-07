@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::rendering::{Render, ViewManager};
 use wasm_bindgen::prelude::*;
 #[macro_use]

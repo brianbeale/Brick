@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static SPAN_COUNTER: AtomicUsize = AtomicUsize::new(0);
 static CONTAINER_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-use crate::state_manager::{SpanObserver, State, Subject};
+use crate::state_mgmt::{SpanObserver, State, Subject};
 
 pub struct Span {
     pub class_name: String,

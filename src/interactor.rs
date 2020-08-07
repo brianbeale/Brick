@@ -1,12 +1,13 @@
+use crate::components::Render;
+use crate::components::ViewComposite;
 use crate::dom_context::DomContext;
-use crate::rendering::{Render, ViewManager};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
 pub struct Hermit {
-    pub root_manager: ViewManager,
+    pub root_manager: ViewComposite,
     pub dom_context: DomContext,
 }
 
@@ -18,7 +19,7 @@ impl Hermit {
         }
     }
     pub fn run(mut self) {
-        self.root_manager.mount_to_body(&self.dom_context);
+        self.root_manager.mount(&self.dom_context.body);
         let shared_root = Rc::new(RefCell::new(self.root_manager));
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();

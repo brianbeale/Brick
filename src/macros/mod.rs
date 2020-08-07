@@ -1,4 +1,7 @@
-#![allow(unused)]
+#[macro_use]
+mod rendering;
+#[macro_use]
+mod set_state;
 
 #[macro_export]
 macro_rules! console_log {
@@ -11,10 +14,9 @@ macro_rules! console_log {
 macro_rules! method {
     ( $method_name:ident, $sharing_model:expr ) => {{
         let s = std::rc::Rc::clone(&$sharing_model);
-        Closure::wrap(
-            Box::new(move |e: web_sys::Event| s.borrow_mut().$method_name(e))
-                as Box<dyn FnMut(web_sys::Event)>,
-        )
+        wasm_bindgen::closure::Closure::wrap(Box::new(move |e: web_sys::Event| {
+            s.borrow_mut().$method_name(e)
+        }) as Box<dyn FnMut(web_sys::Event)>)
     }};
 }
 
@@ -23,7 +25,7 @@ macro_rules! observe {
     ( $subject:expr, $class_name:expr ) => {
         $subject.add_observer(
             $class_name,
-            Box::new(crate::state_manager::SpanObserver::new($class_name)),
+            Box::new(crate::state_mgmt::SpanObserver::new($class_name)),
         );
     };
 }

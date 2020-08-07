@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Ident, ImplItem, ItemImpl, ItemStruct, Type};
+use syn::{parse_macro_input, Ident, ImplItem, ItemFn, ItemImpl, ItemStruct, Type};
 
 #[proc_macro_attribute]
 pub fn controller(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -23,13 +23,14 @@ pub fn controller(_attr: TokenStream, item: TokenStream) -> TokenStream {
         #impl_input
 
         impl #model_name {
-            pub fn controller_methods(self) -> std::collections::HashMap<&'static str, (&'static str, Closure<dyn FnMut(web_sys::Event)>)> {
+            pub fn controller_methods(self) -> (std::collections::HashMap<&'static str, (&'static str, wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>)>,
+        std::rc::Rc<std::cell::RefCell<#model_name>>) {
                 let mut event_listeners = std::collections::HashMap::new();
                 let sharing_model = std::rc::Rc::new(std::cell::RefCell::new(self));
                 #(
                     event_listeners.insert(stringify!(#method_idents), ("click", method!(#method_idents, sharing_model)));
                 )*
-                event_listeners
+                (event_listeners, sharing_model)
             }
 
         }
@@ -55,6 +56,7 @@ pub fn derive_model(input: TokenStream) -> TokenStream {
     let prop_field_types: Vec<Type> = item.fields.iter().map(|x| x.ty.clone()).collect();
 
     let additional = quote! {
+        use crate::state_mgmt::{State, Subject};
         pub struct #model_name {
             #(
                 pub #prop_field_names: State<#prop_field_types>,
@@ -69,11 +71,38 @@ pub fn derive_model(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        impl #prop_struct_name {
+            pub fn make_model(&self) -> #model_name {
+                #model_name::new(&self)
+            }
+        }
     };
 
     TokenStream::from(additional)
 }
 
+#[proc_macro_attribute]
+pub fn view(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let struct_name = parse_macro_input!(attr as Ident);
+    let func = parse_macro_input!(item as ItemFn);
+    let func_block = func.block;
+    let mut statements = func_block.stmts;
+    let tail = statements.remove(statements.len() - 1);
+
+    let output = quote! {
+        impl Render for #struct_name {
+            fn render(&self) -> ViewComposite {
+                let props = self;
+                let mut model = props.make_model();
+                #( #statements )*
+                composite!(#struct_name, model, #tail)
+            }
+        }
+    };
+    TokenStream::from(output)
+}
+
+// Utililty
 #[proc_macro_attribute]
 pub fn print_item(_attr: TokenStream, item: TokenStream) -> TokenStream {
     println!("item: \"{}\"", item.to_string());
