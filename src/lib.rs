@@ -1,16 +1,16 @@
 use wasm_bindgen::prelude::*;
 extern crate js_sys;
-// #[macro_use]
-// extern crate hermit_proc_macros;
-// use hermit_proc_macros::show_streams;
 
-#[macro_use]
-mod macros;
-mod components;
-mod dom_context;
 mod elements;
 
+#[macro_use]
+mod view_components;
+
+#[macro_use]
 mod state_mgmt;
+
+#[macro_use]
+mod controller_system;
 
 mod interactor;
 use interactor::Hermit;

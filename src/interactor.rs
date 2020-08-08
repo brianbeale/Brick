@@ -1,10 +1,25 @@
-use crate::components::Render;
-use crate::components::ViewComposite;
-use crate::dom_context::DomContext;
-use std::cell::RefCell;
-use std::rc::Rc;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
+use crate::view_components::{Render, ViewComposite};
+use std::{cell::RefCell, rc::Rc};
+use wasm_bindgen::{prelude::*, JsCast};
+
+pub struct DomContext {
+    pub window: web_sys::Window,
+    pub document: web_sys::Document,
+    pub body: web_sys::HtmlElement,
+}
+
+impl DomContext {
+    pub fn new() -> Self {
+        let window = web_sys::window().expect("window object not found");
+        let document = window.document().expect("no document found");
+        let body = document.body().expect("document should have a body");
+        DomContext {
+            window,
+            document,
+            body,
+        }
+    }
+}
 
 pub struct Hermit {
     pub root_manager: ViewComposite,
@@ -25,21 +40,7 @@ impl Hermit {
         let g = f.clone();
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             let _root = Rc::clone(&shared_root);
-            // if i > 300 {
-            //     dc.body.set_text_content(Some("All done!"));
 
-            //     // Drop our handle to this closure so that it will get cleaned
-            //     // up once we return.
-            //     let _ = f.borrow_mut().take();
-            //     return;
-            // }
-            // Set the body's text content to how many times this
-            // requestAnimationFrame callback has fired.
-            // i += 1;
-            // let text = format!("requestAnimationFrame has been called {} times.", i);
-            // dc.body.set_text_content(Some(&text));
-
-            // Schedule ourself for another requestAnimationFrame callback.
             request_animation_frame(f.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
 

@@ -1,4 +1,4 @@
-use crate::components::*;
+use crate::view_components::*;
 
 #[derive(Model)]
 pub struct Counter {
