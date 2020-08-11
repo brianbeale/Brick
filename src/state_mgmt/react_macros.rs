@@ -3,7 +3,7 @@
 // Helper macro for attaching SpanObservers to State Subjects
 macro_rules! observe {
     ( $subject:expr, $class_name:expr ) => {
-        $subject.add_observer(
+        $subject.borrow_mut().add_observer(
             $class_name,
             Box::new(crate::state_mgmt::SpanObserver::new($class_name)),
         );
@@ -13,8 +13,8 @@ macro_rules! observe {
 // Reactive text node with format!-like interface
 macro_rules! react {
     ( $template:expr, $subject:expr ) => {{
-        let s = crate::elements::Span::new(&$subject);
-        observe!($subject, &s.class_name);
-        &format!($template, s)
+        let s = crate::view_components::Span::new(&Rc::clone(&$subject).borrow_mut().read());
+        observe!(Rc::clone(&$subject), &s.class_name);
+        &format!($template, s.html())
     }};
 }

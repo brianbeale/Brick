@@ -3,6 +3,29 @@ use quote::quote;
 use syn::{parse_macro_input, Ident, ImplItem, ItemFn, ItemImpl, ItemStruct, Type};
 
 #[proc_macro_attribute]
+pub fn model(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let item = parse_macro_input!(item as ItemStruct);
+    let struct_name = item.ident;
+    let field_names: Vec<Ident> = item
+        .fields
+        .iter()
+        .map(|x| x.ident.clone().unwrap())
+        .collect();
+    let field_types: Vec<Type> = item.fields.iter().map(|x| x.ty.clone()).collect();
+
+    let expanded = quote! {
+        use crate::state_mgmt::Subject;
+        use std::{rc::Rc, cell::RefCell};
+        pub struct #struct_name {
+            #(
+                pub #field_names: Rc<RefCell<Box<dyn Subject<#field_types>>>>,
+            )*
+        }
+    };
+    TokenStream::from(expanded)
+}
+
+#[proc_macro_attribute]
 pub fn controller(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let impl_input = parse_macro_input!(item as ItemImpl);
     let model_name = *impl_input.self_ty.clone();
@@ -28,7 +51,7 @@ pub fn controller(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 let mut event_listeners = std::collections::HashMap::new();
                 let sharing_model = std::rc::Rc::new(std::cell::RefCell::new(self));
                 #(
-                    event_listeners.insert(stringify!(#method_idents), ("click", method!(#method_idents, sharing_model)));
+                    event_listeners.insert(stringify!(#method_idents), ("click", method!(#method_idents, std::rc::Rc::clone(&sharing_model))));
                 )*
                 (event_listeners, sharing_model)
             }
@@ -91,11 +114,12 @@ pub fn view(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let output = quote! {
         impl Render for #struct_name {
-            fn render(&self) -> ViewComposite {
-                let props = self;
-                let mut model = props.make_model();
+            fn render(mut self) -> Box<ViewComposite> {
+                // let props = std::rc::Rc::new(std::cell::RefCell::new(self));
+                // let mut model = props.make_model();
+                let (event_listeners, sharing_model) = self.controller_methods();
                 #( #statements )*
-                composite!(#struct_name, model, #tail)
+                composite!(#struct_name, event_listeners, (sharing_model as Rc<RefCell<dyn std::any::Any>>), #tail)
             }
         }
     };

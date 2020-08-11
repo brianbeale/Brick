@@ -8,3 +8,6 @@ macro_rules! method {
         }) as Box<dyn FnMut(web_sys::Event)>)
     }};
 }
+
+// Ideally controller methods should be reusable between components
+// Abstract Factory?

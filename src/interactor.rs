@@ -22,14 +22,14 @@ impl DomContext {
 }
 
 pub struct Hermit {
-    pub root_manager: ViewComposite,
+    pub root_manager: Box<ViewComposite>,
     pub dom_context: DomContext,
 }
 
 impl Hermit {
     pub fn new<T: Render>(root: T) -> Self {
         Hermit {
-            root_manager: Box::new(root).render(),
+            root_manager: root.render(),
             dom_context: DomContext::new(),
         }
     }
@@ -54,3 +54,10 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
 }
+
+// Would like to provide deeper context for components to access
+// potentially GraphQL/network context
+
+// request_animation_frame was initially a technique to keep references
+// to callbacks in scope, but should form the basis for Scheduler
+// which ideally should be real-time performant enough to be a game loop

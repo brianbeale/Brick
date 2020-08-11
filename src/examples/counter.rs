@@ -1,21 +1,20 @@
 use crate::view_components::*;
 
-#[derive(Model)]
+#[model]
 pub struct Counter {
-    pub count: usize,
+    count: usize,
 }
 #[controller]
-impl CounterModel {
+impl Counter {
     pub fn increment(&mut self, _e: web_sys::Event) {
         set!(self.count => + 1);
     }
 }
 #[view(Counter)]
-fn render() -> ViewComposite {
-    let x = true;
-    children! { if x {h1("My Counter")} else { h1("")},
-        p(react!("The count is: {}", model.count)),
-        p(&format!("The count starts at: {}", props.count)),
+fn render() -> Box<ViewComposite> {
+    let count = sharing_model.borrow().count.clone();
+    children! { h2("My Counter").c("classy"),
+        p(react!("The count is: {}", count)),
         button("+").c("increment"),
     }
 }

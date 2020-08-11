@@ -21,11 +21,16 @@ impl ViewLeafText {
 }
 impl ViewComponent for ViewLeafText {
     fn html(&self) -> String {
+        let mut class_insert = "".to_string();
+        if self.class_name.len() > 0 {
+            class_insert = format!(r#"class="{}""#, self.class_name);
+        }
         format!(
-            r#"<{} class="{}">{}</{}>"#,
-            self.tag, self.class_name, self.text_content, self.tag
+            r#"<{} {}>{}</{}>"#,
+            self.tag, class_insert, self.text_content, self.tag
         )
     }
+    fn attach_listeners(&self) {}
 }
 macro_rules! tag_funcs {
     ( $( $name:ident ),* ) => {
@@ -40,7 +45,7 @@ macro_rules! tag_funcs {
         )*
     };
 }
-tag_funcs!(p, h1);
+tag_funcs!(p, h1, h2);
 pub fn button<T: Display + ?Sized>(text: &T) -> Box<ViewLeafText> {
     Box::new(ViewLeafText {
         tag: "button",

@@ -20,7 +20,10 @@ impl<T> State<T> {
         }
     }
 }
-impl<T> Subject<T> for State<T> {
+impl<T: Clone> Subject<T> for State<T> {
+    fn read(&self) -> T {
+        self.datum.clone()
+    }
     fn update(&mut self, new_datum: T) {
         self.datum = new_datum;
         self.refresh();
