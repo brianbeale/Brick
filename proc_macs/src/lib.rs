@@ -117,9 +117,9 @@ pub fn view(attr: TokenStream, item: TokenStream) -> TokenStream {
             fn render(mut self) -> Box<ViewComposite> {
                 // let props = std::rc::Rc::new(std::cell::RefCell::new(self));
                 // let mut model = props.make_model();
-                let (event_listeners, sharing_model) = self.controller_methods();
+                let (event_listeners, model) = self.controller_methods();
                 #( #statements )*
-                composite!(#struct_name, event_listeners, (sharing_model as Rc<RefCell<dyn std::any::Any>>), #tail)
+                composite!(#struct_name, event_listeners, (model as Rc<RefCell<dyn std::any::Any>>), #tail)
             }
         }
     };

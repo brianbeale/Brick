@@ -18,3 +18,13 @@ macro_rules! react {
         &format!($template, s.html())
     }};
 }
+
+macro_rules! react_text {
+    ( $template:expr, $model:ident . $state_var:ident ) => {{
+        let s = crate::view_components::Span::new(
+            &Rc::clone(&$model.borrow().$state_var).borrow().read(),
+        );
+        observe!(Rc::clone(&$model.borrow().$state_var), &s.class_name);
+        &format!($template, s.html())
+    }};
+}

@@ -6,14 +6,14 @@ pub struct DoubleCounter {
     count: usize,
 }
 
+// TODO: controller should be optional
 #[controller]
 impl DoubleCounter {}
 
 #[view(DoubleCounter)]
 fn render() -> Box<ViewComposite> {
-    let count = sharing_model.borrow().count.clone();
     children! { h1("Double Counter"),
-        Counter { count: bind!(count) }.render(),
-        Counter { count: bind!(count) }.render().c("Counter_2"),
+        Counter { count: bind!(model.count) }.render(),
+        Counter { count: bind!(model.count) }.render().c("Counter_2"),
     }
 }

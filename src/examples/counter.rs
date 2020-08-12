@@ -12,9 +12,8 @@ impl Counter {
 }
 #[view(Counter)]
 fn render() -> Box<ViewComposite> {
-    let count = sharing_model.borrow().count.clone();
     children! { h2("My Counter").c("classy"),
-        p(react!("The count is: {}", count)),
+        p(react_text!("The count is: {}", model.count)),
         button("+").c("increment"),
     }
 }

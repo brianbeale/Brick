@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static BOUND_STATE_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 pub struct BoundState<T: Clone> {
-    name: String,
+    name: String, // TODO: impl Drop
     inner_state: Rc<RefCell<Box<dyn Subject<T>>>>,
     outer_state: Rc<RefCell<Box<dyn Subject<T>>>>,
 }
