@@ -1,4 +1,4 @@
-pub use hermit_proc_macros::{controller, model, view, Model};
+pub use hermit_proc_macros::{controller, model, view};
 
 #[macro_use]
 pub mod view_helpers;
@@ -6,17 +6,8 @@ pub mod view_helpers;
 mod composites;
 pub use composites::*;
 
-mod text_containers;
-pub use text_containers::*;
-
-mod spans;
-pub use spans::*;
-
-mod media;
-pub use media::*;
-
-mod custom;
-pub use custom::*;
+mod leafs;
+pub use leafs::*;
 
 pub trait ViewComponent {
     fn html(&self) -> String;

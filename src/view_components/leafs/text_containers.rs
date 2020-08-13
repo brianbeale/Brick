@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::ViewComponent;
+use super::super::ViewComponent;
 
 pub struct ViewLeafText {
     tag: &'static str,

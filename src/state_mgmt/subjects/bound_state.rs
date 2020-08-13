@@ -1,4 +1,4 @@
-use super::{Observer, State, Subject};
+use super::super::{Effect, Observer, State, Subject};
 use std::{cell::RefCell, rc::Rc};
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -47,21 +47,5 @@ impl<T: Clone + 'static> Subject<T> for BoundState<T> {
     }
     fn remove_observer(&mut self, name: &str) -> Option<Box<dyn Observer<T>>> {
         self.inner_state.borrow_mut().remove_observer(name)
-    }
-}
-
-pub struct Effect<T> {
-    callback: Box<dyn FnMut(&T)>,
-}
-impl<T> Effect<T> {
-    pub fn new<F: FnMut(&T) + 'static>(callback: F) -> Self {
-        Effect {
-            callback: Box::new(callback),
-        }
-    }
-}
-impl<T> Observer<T> for Effect<T> {
-    fn notify(&mut self, datum: &T) {
-        (self.callback)(datum);
     }
 }

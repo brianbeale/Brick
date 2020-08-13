@@ -1,4 +1,4 @@
-use super::ViewComponent;
+use super::super::ViewComponent;
 use crate::state_mgmt::{SpanObserver, State, Subject};
 use std::fmt::Display;
 use std::sync::atomic::{AtomicUsize, Ordering};

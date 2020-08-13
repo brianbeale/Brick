@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! composite {
+macro_rules! make_composite {
     ( $struct_name:ident, $event_listeners:expr, $sharing_model:expr, $kids:expr ) => {{
         // let mut model = $s.make_model();
         let children: Vec<Box<dyn ViewComponent>> = $kids;
@@ -20,21 +20,3 @@ macro_rules! children {
         ]
     }};
 }
-
-// macro_rules! composite_discriminator {
-//     // ( $name:ty {$( $tail:tt )*} ) => {
-//     //     box_and_render!($name {$( $tail )*})
-//     // };
-//     ( $( $name:ident ($inner:expr) $(.)*) ) => {
-
-//     }
-//     ( $( $anything_else:tt )* ) => {
-//         $( $anything_else )*
-//     }
-// }
-
-// macro_rules! box_and_render {
-//     ( $composite_struct:expr ) => {
-//         Box::new($composite_struct.render())
-//     };
-// }

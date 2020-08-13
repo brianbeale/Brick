@@ -62,48 +62,6 @@ pub fn controller(_attr: TokenStream, item: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-#[proc_macro_derive(Model)]
-pub fn derive_model(input: TokenStream) -> TokenStream {
-    let item = parse_macro_input!(input as ItemStruct);
-    let prop_struct_name = item.ident;
-    let model_name = Ident::new(
-        &format!("{}Model", prop_struct_name),
-        prop_struct_name.span(),
-    );
-    let prop_field_names: Vec<Ident> = item
-        .fields
-        .iter()
-        .map(|x| x.ident.clone().unwrap())
-        .collect();
-
-    let prop_field_types: Vec<Type> = item.fields.iter().map(|x| x.ty.clone()).collect();
-
-    let additional = quote! {
-        use crate::state_mgmt::{State, Subject};
-        pub struct #model_name {
-            #(
-                pub #prop_field_names: State<#prop_field_types>,
-            )*
-        }
-        impl #model_name {
-            pub fn new(prop_struct: &#prop_struct_name) -> Self {
-                #model_name {
-                    #(
-                        #prop_field_names: State::new(prop_struct.#prop_field_names),
-                    )*
-                }
-            }
-        }
-        impl #prop_struct_name {
-            pub fn make_model(&self) -> #model_name {
-                #model_name::new(&self)
-            }
-        }
-    };
-
-    TokenStream::from(additional)
-}
-
 #[proc_macro_attribute]
 pub fn view(attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_name = parse_macro_input!(attr as Ident);
@@ -119,7 +77,7 @@ pub fn view(attr: TokenStream, item: TokenStream) -> TokenStream {
                 // let mut model = props.make_model();
                 let (event_listeners, model) = self.controller_methods();
                 #( #statements )*
-                composite!(#struct_name, event_listeners, (model as Rc<RefCell<dyn std::any::Any>>), #tail)
+                make_composite!(#struct_name, event_listeners, (model as Rc<RefCell<dyn std::any::Any>>), #tail)
             }
         }
     };

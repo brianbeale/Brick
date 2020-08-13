@@ -1,4 +1,5 @@
-use super::ViewComponent;
+#![allow(unused)]
+use super::super::ViewComponent;
 
 pub struct ViewLeafBlank {}
 impl ViewComponent for ViewLeafBlank {

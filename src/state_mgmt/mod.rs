@@ -1,21 +1,14 @@
 #[macro_use]
 pub mod set_state;
 #[macro_use]
-pub mod state_wrap;
+pub mod state_constructors;
 #[macro_use]
 pub mod react_macros;
-#[macro_use]
-pub mod bind;
 
 mod observers;
 pub use observers::*;
 mod subjects;
 pub use subjects::*;
-// mod mediator;
-// pub use mediator::*;
-
-mod bound_state;
-pub use bound_state::*;
 
 pub trait Observer<T> {
     fn notify(&mut self, datum: &T);

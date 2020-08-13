@@ -11,13 +11,13 @@ macro_rules! observe {
 }
 
 // Reactive text node with format!-like interface
-macro_rules! react {
-    ( $template:expr, $subject:expr ) => {{
-        let s = crate::view_components::Span::new(&Rc::clone(&$subject).borrow_mut().read());
-        observe!(Rc::clone(&$subject), &s.class_name);
-        &format!($template, s.html())
-    }};
-}
+// macro_rules! react {
+//     ( $template:expr, $subject:expr ) => {{
+//         let s = crate::view_components::Span::new(&Rc::clone(&$subject).borrow_mut().read());
+//         observe!(Rc::clone(&$subject), &s.class_name);
+//         &format!($template, s.html())
+//     }};
+// }
 
 macro_rules! react_text {
     ( $template:expr, $model:ident . $state_var:ident ) => {{

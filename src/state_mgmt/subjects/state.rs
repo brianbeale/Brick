@@ -1,7 +1,7 @@
+use super::super::{Observer, Subject};
+
 use std::collections::HashMap;
 use std::{fmt::Display, ops::Deref};
-
-use super::{Observer, Subject};
 
 pub struct State<T> {
     datum: T,
