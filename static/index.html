@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="./global.css" rel="stylesheet" />
+  <title>Brick — Rust/WASM UI Framework</title>
+</head>
+<body>
+
+<header>
+  <h1>Brick</h1>
+  <p>Declarative Rust/WASM UI framework demo</p>
+</header>
+
+<main>
+
+  <!-- Counter -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-label">counter</span>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-card="counter" data-tab="preview">Preview</button>
+        <button class="tab-btn"        data-card="counter" data-tab="source">Source</button>
+      </div>
+    </div>
+    <div class="tab-panel active" data-card-owner="counter" data-tab="preview">
+      <div id="counter-mount"></div>
+    </div>
+    <div class="tab-panel" data-card-owner="counter" data-tab="source">
+      <pre><code>#[model]
+pub struct Counter {
+    pub count: isize,
+}
+
+#[view(Counter)]
+fn render() -> Box&lt;ViewComposite&gt; {
+    style! {
+        .brick-row { display: inline-flex; gap: 1.25rem; }
+        .brick-row button { padding: 0.65rem 0.9rem; }
+    }
+    children! {
+        row! {
+            button("−").click(&amp;my.count, |v| v - 1).secondary(),
+            p(live!("{my.count}")).text_xl(),
+            button("+").click(&amp;my.count, |v| v + 1).primary(),
+        },
+    }
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- Thermometer -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-label">thermometer</span>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-card="thermo" data-tab="preview">Preview</button>
+        <button class="tab-btn"        data-card="thermo" data-tab="source">Source</button>
+      </div>
+    </div>
+    <div class="tab-panel active" data-card-owner="thermo" data-tab="preview">
+      <div id="thermometer-mount"></div>
+    </div>
+    <div class="tab-panel" data-card-owner="thermo" data-tab="source">
+      <pre><code>#[model]
+pub struct Thermometer {
+    pub celsius: f64,
+    #[from(celsius, |c| c * 9.0 / 5.0 + 32.0)]
+    fahrenheit: f64,
+    #[from(celsius, |c| c + 273.15)]
+    kelvin: f64,
+}
+
+#[view(Thermometer)]
+fn render() -> Box&lt;ViewComposite&gt; {
+    children! {
+        h2("Temperature Converter"),
+        input().attr("type", "number")
+               .attr("step", "0.1")
+               .bind(&amp;my.celsius),
+        p(live!("{my.celsius:.1} °C = \
+                 {my.fahrenheit:.1} °F = \
+                 {my.kelvin:.1} K")),
+    }
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- DoubleCounter -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-label">shared state</span>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-card="shared" data-tab="preview">Preview</button>
+        <button class="tab-btn"        data-card="shared" data-tab="source">Source</button>
+      </div>
+    </div>
+    <div class="tab-panel active" data-card-owner="shared" data-tab="preview">
+      <div id="double-counter-mount"></div>
+    </div>
+    <div class="tab-panel" data-card-owner="shared" data-tab="source">
+      <pre><code>#[model]
+pub struct DoubleCounter {
+    pub count: isize,
+}
+
+#[view(DoubleCounter)]
+fn render() -> Box&lt;ViewComposite&gt; {
+    children! {
+        h2("Shared State"),
+        // bind!() passes a reference — both counters
+        // share the same underlying Subject&lt;isize&gt;
+        Counter { count: bind!(my.count) }.render(),
+        Counter { count: bind!(my.count) }.render(),
+    }
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- Variants -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-label">button variants</span>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-card="variants" data-tab="preview">Preview</button>
+        <button class="tab-btn"        data-card="variants" data-tab="source">Source</button>
+      </div>
+    </div>
+    <div class="tab-panel active" data-card-owner="variants" data-tab="preview">
+      <div id="variants-mount"></div>
+    </div>
+    <div class="tab-panel" data-card-owner="variants" data-tab="source">
+      <pre><code>#[model]
+pub struct Variants {
+    pub clicks: isize,
+}
+
+#[view(Variants)]
+fn render() -> Box&lt;ViewComposite&gt; {
+    children! {
+        h2("Button Variants"),
+        row! {
+            button("Primary").primary(), button("Secondary").secondary(),
+            button("Ghost").ghost(), button("Danger").danger(), button("Success").success(),
+        },
+        h2("Sizes"),
+        row! {
+            button("SM").secondary().sm(),
+            button("Normal").secondary(),
+            button("LG").secondary().lg(),
+        },
+        button("Full Width").primary().full_width(),
+        row! {
+            button("Ghost — track clicks").click(&amp;my.clicks, |v| v + 1).ghost(),
+            p(live!("Clicked {my.clicks}×")).muted(),
+        },
+    }
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- Typography -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-label">typography &amp; spacing</span>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-card="typo" data-tab="preview">Preview</button>
+        <button class="tab-btn"        data-card="typo" data-tab="source">Source</button>
+      </div>
+    </div>
+    <div class="tab-panel active" data-card-owner="typo" data-tab="preview">
+      <div id="typography-mount"></div>
+    </div>
+    <div class="tab-panel" data-card-owner="typo" data-tab="source">
+      <pre><code>#[view(Typography)]
+fn render() -> Box&lt;ViewComposite&gt; {
+    children! {
+        h2("Type Scale"),
+        p("xs · 0.75rem").text_xs(),
+        p("md · 1rem").text_md(),
+        p("xl · 1.25rem").text_xl(),
+        p("2xl · 1.5rem").text_2xl(),
+        h2("Builders"),
+        p("Bold weight").bold(),
+        p("Monospace family").mono(),
+        p("Truncated — intentionally long text will be clipped by overflow hidden")
+            .truncate()
+            .style(css!("max-width: 200px")),
+        button("p(Md)").click(&amp;my.ticks, |v| v + 1).secondary().p(Space::Md),
+        button("px(Lg)").click(&amp;my.ticks, |v| v + 1).ghost().px(Space::Lg),
+        p(live!("Clicks: {my.ticks}")).muted(),
+    }
+}</code></pre>
+    </div>
+  </div>
+
+</main>
+
+<script src="index.js"></script>
+<script>
+  // Tab switching via event delegation
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    var card = btn.dataset.card;
+    var tab  = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn[data-card="' + card + '"]')
+            .forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel[data-card-owner="' + card + '"]')
+            .forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelector(
+      '.tab-panel[data-card-owner="' + card + '"][data-tab="' + tab + '"]'
+    ).classList.add('active');
+  });
+</script>
+
+</body>
+</html>

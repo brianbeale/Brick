@@ -1,0 +1,226 @@
+/* ── Brick design tokens (fallback — overridden by ThemeSet::inject()) ──────── */
+:root {
+  --brick-accent:         #9e281a;
+  --brick-accent-hover:   #7e1810;
+  --brick-accent-fg:      #ffffff;
+  --brick-accent-faint:   rgba(158, 40, 26, 0.14);
+  --brick-danger:         #ba1c1c;
+  --brick-success:        #1e8240;
+  --brick-warning:        #be7c0a;
+  --brick-bg:             #e2bab4;
+  --brick-surface:        #f6dad6;
+  --brick-surface-raised: #ecccc7;
+  --brick-border:         #b6847c;
+  --brick-text:           #160604;
+  --brick-text-muted:     #62342e;
+  --brick-code-bg:        #1a0806;
+  --brick-code-fg:        #e6c8c0;
+  --brick-font-sans:      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --brick-font-mono:      'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+  --brick-space-xs:       0.25rem;
+  --brick-space-sm:       0.5rem;
+  --brick-space-md:       1rem;
+  --brick-space-lg:       1.5rem;
+  --brick-space-xl:       2.5rem;
+  --brick-radius-sm:      0.15rem;
+  --brick-radius-md:      0.4rem;
+  --brick-radius-lg:      0.65rem;
+  --brick-text-xs:        0.75rem;
+  --brick-text-sm:        0.875rem;
+  --brick-text-md:        1rem;
+  --brick-text-lg:        1.125rem;
+  --brick-text-xl:        1.25rem;
+  --brick-text-2xl:       1.5rem;
+  --brick-shadow:         0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Declare layer order.
+   Unlayered page-chrome styles (below) always win over every layer.
+   Within layers: brick.reset < brick.theme < brick.components < brick.utilities */
+@layer brick.reset, brick.theme, brick.components, brick.utilities;
+
+/* ── Element defaults — layered so brick.components classes can override ──────── */
+@layer brick.reset {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--brick-font-sans);
+    background: var(--brick-bg);
+    color: var(--brick-text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3 { font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+  h1 { font-size: 1.5rem;  margin-bottom: 0.5rem; }
+  h2 { font-size: 1.05rem; margin-bottom: 0.5rem; }
+
+  p {
+    font-size: 0.9rem;
+    color: var(--brick-text-muted);
+    margin-top: 0.5rem;
+  }
+
+  span {
+    font-family: var(--brick-font-mono);
+    font-weight: 600;
+    color: var(--brick-accent);
+  }
+
+  /* Neutral button base — intentionally low-key so .brick-* variants can override */
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--brick-font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    border-radius: var(--brick-radius-sm);
+    padding: 0.4rem 1rem;
+    background: var(--brick-surface-raised);
+    color: var(--brick-text);
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 0.75rem;
+  }
+  button:hover  { background: var(--brick-border); }
+  button:active { transform: scale(0.97); }
+
+  input[type="number"],
+  input[type="text"] {
+    display: block;
+    width: 100%;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--brick-border);
+    border-radius: var(--brick-radius-sm);
+    font-family: var(--brick-font-mono);
+    font-size: 0.95rem;
+    color: var(--brick-text);
+    background: var(--brick-bg);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    margin-bottom: 0.75rem;
+  }
+  input[type="number"]:focus,
+  input[type="text"]:focus {
+    border-color: var(--brick-accent);
+    box-shadow: 0 0 0 3px var(--brick-accent-faint);
+  }
+}
+
+/* ── Page chrome — unlayered, always wins ────────────────────────────────────── */
+
+header {
+  background: var(--brick-surface);
+  border-bottom: 1px solid var(--brick-border);
+  padding: 0.9rem 2rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+header h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0;
+}
+
+header p {
+  font-size: 0.85rem;
+  color: var(--brick-text-muted);
+  margin-top: 0;
+}
+
+main {
+  max-width: 1040px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  align-items: start;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--brick-surface);
+  border: 1px solid var(--brick-border);
+  border-radius: var(--brick-radius-md);
+  box-shadow: var(--brick-shadow);
+  overflow: hidden;
+}
+
+.card-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brick-text-muted);
+  font-family: var(--brick-font-mono);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--brick-border);
+  background: var(--brick-surface-raised);
+}
+
+/* ── Tab bar ─────────────────────────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  background: var(--brick-bg);
+  border-radius: var(--brick-radius-sm);
+  padding: 3px;
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--brick-text-muted);
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  border-radius: calc(var(--brick-radius-sm) * 0.75);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, box-shadow 0.1s;
+  margin-top: 0;
+  margin-inline-end: 0;
+}
+.tab-btn:hover  { background: var(--brick-surface); color: var(--brick-text); }
+.tab-btn.active {
+  background: var(--brick-surface);
+  color: var(--brick-text);
+  box-shadow: var(--brick-shadow);
+}
+
+/* ── Tab panels ──────────────────────────────────────────────────────────────── */
+.tab-panel        { display: none; }
+.tab-panel.active { display: block; }
+.tab-panel[data-tab="preview"] { padding: 1.25rem; }
+.tab-panel[data-tab="source"]  { padding: 0; }
+
+/* ── Source code blocks ──────────────────────────────────────────────────────── */
+.tab-panel pre,
+.source-panel pre {
+  background: var(--brick-code-bg);
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-family: var(--brick-font-mono);
+  font-size: 0.76rem;
+  line-height: 1.65;
+  color: var(--brick-code-fg);
+  margin: 0;
+  tab-size: 4;
+}
+.tab-panel code,
+.source-panel code { font-family: inherit; }
+/* Let our themed pre background show through instead of hljs's own bg */
+.tab-panel .hljs,
+.source-panel .hljs { background: transparent; }

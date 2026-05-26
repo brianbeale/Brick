@@ -1,0 +1,286 @@
+# Brick
+
+Declarative DOM with reactive state, without diffing — in Rust.
+
+Brick compiles to WebAssembly and renders directly to the browser DOM. State changes propagate through an observer graph; only the exact spans and inputs that depend on changed values are updated, with no virtual DOM overhead.
+
+---
+
+## Prerequisites
+
+| Tool | Install |
+|------|---------|
+| [Rust + Cargo](https://rustup.rs) | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| wasm32 target | `rustup target add wasm32-unknown-unknown` |
+| [wasm-pack](https://rustwasm.github.io/wasm-pack/) | `cargo install wasm-pack` |
+| chromedriver *(browser tests only)* | `sudo apt install chromium-browser chromium-chromedriver` |
+
+---
+
+## Quick start
+
+```
+cargo xtask serve
+```
+
+Open **http://localhost:8080** in your browser.
+
+Use a custom port:
+
+```
+cargo xtask serve 3000
+```
+
+---
+
+## All tasks
+
+```
+cargo xtask build            # compile WASM (debug)
+cargo xtask build-release    # compile WASM (optimised, enables LTO)
+cargo xtask serve [PORT]     # build + serve at localhost:8080
+cargo xtask test             # run host unit tests (no browser needed)
+cargo xtask test-browser     # run browser tests (requires chromedriver)
+```
+
+---
+
+## Project layout
+
+```
+src/
+  lib.rs                 — wasm entry point, unit + browser tests
+  examples/
+    counter.rs           — click counter (model + controller + view)
+    thermometer.rs       — temperature converter (.bind(), no controller)
+    double_counter.rs    — shared state across two components
+    todo_list.rs         — add/remove with reactive list
+    todo_mvc.rs          — TodoMVC with filter and reactive class
+    crud.rs              — 7GUIs CRUD demo
+    flight_booker.rs     — 7GUIs Flight Booker
+    timer.rs             — 7GUIs Timer (interval + lifecycle)
+    routing_demo.rs      — client-side routing with nested routes
+  state_mgmt/            — Signal, Subject/Observer reactive core
+  view_components/       — element builders, macros, composites
+  routing/               — #[routes], history API, NavLink
+  controller_system/     — DOM event extraction utilities
+proc_macs/               — #[model], #[controller], #[view], live! macros
+xtask/                   — cargo xtask build tooling
+index.html               — entry point served by `cargo xtask serve`
+static/global.css        — base styles
+```
+
+---
+
+## Writing a component
+
+A Brick component is three annotated items — model, controller, view — in any `.rs` file.
+
+### Model
+
+```rust
+#[model]
+pub struct Counter {
+    pub count: usize,
+}
+```
+
+`#[model]` generates:
+- `Rc<RefCell<Box<dyn Subject<T>>>>` for every field (reactive state)
+- `Clone` (cheap — just clones the Rcs)
+- `impl BrickModel` with `wire_cascade()` and a default `controller_methods()`
+- `impl Cascade` if any field uses `#[from]` or `#[default]`
+
+**Derived fields** update automatically when their source changes:
+
+```rust
+#[model]
+pub struct Thermometer {
+    pub celsius: f64,
+    #[from(celsius, |c| c * 9.0 / 5.0 + 32.0)]
+    fahrenheit: f64,
+    #[from(celsius, |c| c + 273.15)]
+    kelvin: f64,
+}
+```
+
+**Default fields** are filled by `cascade()` without being primary inputs:
+
+```rust
+#[model]
+pub struct Config {
+    pub value: f64,
+    #[default(1.0_f64)]
+    pub step: f64,
+}
+```
+
+Construct with struct literal syntax — `..cascade()` fills derived/default fields:
+
+```rust
+Thermometer { celsius: state!(20.0), ..cascade() }
+```
+
+### Controller *(optional)*
+
+```rust
+#[controller]
+impl Counter {
+    pub fn increment(&mut self) {
+        set!(self.count => + 1);
+    }
+}
+```
+
+`#[controller]` is omitted entirely when the view handles all interaction via `.bind()`.
+
+### View
+
+```rust
+#[view(Counter)]
+fn render() -> Box<ViewComposite> {
+    children! {
+        p(live!("count: {my.count}")),
+        div {
+            class("controls"),
+            button("-").trigger(&my.decrement),
+            button("+").trigger(&my.increment),
+        },
+    }
+}
+```
+
+Inside a view body, `my` is a cheap clone of the model struct — `my.field` is the reactive `Signal<T>` for that field.
+
+**`live!`** — reactive template string. Every `{my.field}` becomes a `<span>` that updates in place when the field changes:
+
+```rust
+live!("{my.celsius:.1} °C = {my.fahrenheit:.1} °F")
+```
+
+**`div { class("name"), children }`** — container DSL. A string literal class produces a static `BrickContainer`; a signal expression produces a `ReactiveDiv` whose class tracks the signal.
+
+**`.bind(&my.field)`** — two-way input binding. Sets the initial `value=` attribute and registers an `input` event listener that writes back to the field. Works for `f64`, `String`, and `bool` fields automatically:
+
+```rust
+input().attr("type", "number").bind(&my.celsius)
+```
+
+**`.trigger(&my.action)`** — wire a button or input to a controller method using the typed `BrickAction` handle generated by `#[controller]`:
+
+```rust
+button("+").trigger(&my.increment)
+```
+
+### Mounting
+
+```rust
+Counter { count: Signal::new(0), ..cascade() }.mount(&root_element);
+```
+
+---
+
+## Macros reference
+
+| Macro | Purpose |
+|-------|---------|
+| `set!(self.field => val)` | Update a reactive field (`+ n`, `- n`, `* n`, `/ n` also work) |
+| `live!("text {my.field:.2}")` | Reactive template string — each `{my.field}` is a live `<span>` |
+| `live!(expr with my.field)` | Reactive expression form — re-evaluates `expr` when field changes |
+| `cascade()` | Fill `#[default]` / `#[from]` fields in struct literal initialisation |
+| `compute!(expr)` | Derive a `Signal<T>` from an expression referencing `my.field` |
+| `when!(my.flag, branch)` | Conditional rendering; call `.mount()` to swap DOM instead of hiding |
+| `when!(my.flag, t, f)` | Two-branch conditional |
+| `list!(my.items, \|item\| …)` | Reactive list — fine-grained updates on push/remove |
+| `style! { .sel { … } }` | Scoped CSS injected once per component instance |
+| `css!("prop:{my.field:.1}unit")` | Reactive inline CSS string for `.style(signal)` |
+| `resolve!(my.load, …)` | Branch on `Load<T, E>` async state (Idle/Loading/Loaded/Failed) |
+| `subroute!(signal, \|v\| …)` | Re-render subtree whenever a signal changes (used for routing) |
+| `slot!(expr)` | Wrap any component expression in a `Slot` for injection into a child |
+
+---
+
+## Routing
+
+Define routes as an enum annotated with `#[routes]`:
+
+```rust
+#[routes]
+#[derive(Clone, PartialEq)]
+pub enum AppRoute {
+    #[path("/")]
+    Home,
+    #[path("/about")]
+    About,
+    #[path("/users/:id")]
+    User { id: String },
+}
+```
+
+Navigate and link:
+
+```rust
+// Anchor tag pointing at a route
+AppRoute::About.link("About us")
+
+// Imperative navigation
+navigate(AppRoute::Home)
+
+// Reactive page dispatch in a view
+subroute!(app_route(), |route| match route {
+    AppRoute::Home  => HomePage { ..cascade() }.into_component(),
+    AppRoute::About => AboutPage { ..cascade() }.into_component(),
+    AppRoute::User { id } => UserPage { id, ..cascade() }.into_component(),
+    _ => p("Not found").into_component(),
+})
+```
+
+`app_route()` returns a `Signal<AppRoute>` backed by the browser's `popstate` / `pushState` API.
+
+Nested routes use `parent_enum` and `parent_variant` on `#[routes]` and can be composed with `subroute!` at each level.
+
+---
+
+## Lifecycle hooks
+
+Every component has mount and unmount hooks:
+
+```rust
+#[controller]
+impl Timer {
+    #[on(mount)]
+    pub fn start(&mut self) {
+        // runs once when the component is attached to the DOM
+    }
+
+    #[on(unmount)]
+    pub fn stop(&mut self) {
+        // runs when the component is detached (route change, when! toggle, etc.)
+    }
+
+    #[on(interval, 100)]
+    pub fn tick(&mut self) {
+        // called every 100 ms while the component is mounted
+        set!(self.elapsed => + 0.1);
+    }
+}
+```
+
+Intervals are automatically cancelled and `#[on(unmount)]` callbacks are called when `detach()` is invoked on the `ViewComposite`. `subroute!` calls `detach()` on the outgoing page component before swapping innerHTML, so cleanup is automatic on route changes.
+
+---
+
+## Running tests
+
+Unit tests (no browser, fast):
+
+```
+cargo xtask test
+```
+
+Browser tests (require chromedriver):
+
+```
+sudo apt install chromium-browser chromium-chromedriver
+cargo xtask test-browser
+```

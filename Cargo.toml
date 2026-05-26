@@ -1,0 +1,75 @@
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(brick_dom)', 'cfg(brick_android)', 'cfg(brick_ios)', 'cfg(brick_macos)'] }
+
+[package]
+name = "brick"
+description = "Declarative DOM with reactive state, without diffing, in Rust"
+version.workspace = true
+authors = ["Brian Beale <brianbeale@protonmail.com>"]
+categories = ["wasm"]
+readme = "README.md"
+edition.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook"]
+
+[dependencies]
+wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+console_error_panic_hook = { version = "0.1.5", optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+wee_alloc = { version = "0.4.2", optional = true }
+js-sys = { workspace = true }
+brick-proc-macros = { path = "proc_macs" }
+inventory = { workspace = true }
+prost = { workspace = true }
+
+[target.'cfg(brick_android)'.dependencies]
+jni = { workspace = true }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "console",
+  'CssStyleDeclaration',
+  'Document',
+  'DocumentFragment',
+  'Element',
+  'Event',
+  'HtmlCollection',
+  'HtmlElement',
+  'HtmlInputElement',
+  'EventInit',
+  'MouseEvent',
+  'MouseEventInit',
+  'Node',
+  'NodeList',
+  'Window',
+  'EventTarget',
+  'History',
+  'Location',
+  'DomRect',
+  'DomRectReadOnly',
+  'SvgElement',
+  'DomTokenList',
+  'AddEventListenerOptions',
+  'Storage',
+  'Request', 'RequestInit', 'RequestMode', 'Response', 'Headers',
+  'WebSocket', 'MessageEvent', 'BinaryType', 'CloseEvent',
+  'EventSource',
+  'Navigator', 'Clipboard',
+  'Geolocation', 'Position', 'Coordinates', 'PositionError', 'PositionOptions',
+  'File', 'FileList', 'FileReader', 'ProgressEvent',
+  'DragEvent', 'DataTransfer',
+]
+
+[dev-dependencies]
+wasm-bindgen-test = { workspace = true }
+js-sys = { workspace = true }
+tokio = { workspace = true }
+trybuild = { workspace = true }

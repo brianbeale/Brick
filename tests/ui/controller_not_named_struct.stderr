@@ -1,0 +1,5 @@
+error: #[controller] requires a named struct
+ --> tests/ui/controller_not_named_struct.rs:4:6
+  |
+4 | impl (i32) {}
+  |      ^^^^^

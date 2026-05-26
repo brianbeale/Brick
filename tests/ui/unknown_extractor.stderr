@@ -1,0 +1,43 @@
+error: unknown extractor 'bogus'; use f64, String, bool, or coords
+ --> tests/ui/unknown_extractor.rs:7:17
+  |
+7 |     #[on(click, bogus)]
+  |                 ^^^^^
+
+error[E0433]: cannot find `state_mgmt` in `crate`
+ --> tests/ui/unknown_extractor.rs:5:1
+  |
+5 | #[controller]
+  | ^^^^^^^^^^^^^ could not find `state_mgmt` in the crate root
+  |
+  = note: this error originates in the attribute macro `controller` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0433]: cannot find `renderer` in `crate`
+ --> tests/ui/unknown_extractor.rs:5:1
+  |
+5 | #[controller]
+  | ^^^^^^^^^^^^^ could not find `renderer` in the crate root
+  |
+  = note: this error originates in the attribute macro `controller` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unexpected `cfg` condition name: `brick_android`
+ --> tests/ui/unknown_extractor.rs:5:1
+  |
+5 | #[controller]
+  | ^^^^^^^^^^^^^
+  |
+  = help: expected names are: `docsrs`, `feature`, and `test` and 31 more
+  = note: using a cfg inside a attribute macro will use the cfgs from the destination crate and not the ones from the defining crate
+  = help: try referring to `controller` crate for guidance on how handle this unexpected cfg
+  = help: the attribute macro `controller` may come from an old version of the `brick_proc_macros` crate, try updating your dependency with `cargo update -p brick_proc_macros`
+  = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+  = note: `#[warn(unexpected_cfgs)]` on by default
+  = note: this warning originates in the attribute macro `controller` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no method named `__wire_form_validation` found for struct `Ref<'_, MyModel>` in the current scope
+ --> tests/ui/unknown_extractor.rs:5:1
+  |
+5 | #[controller]
+  | ^^^^^^^^^^^^^ method not found in `Ref<'_, MyModel>`
+  |
+  = note: this error originates in the attribute macro `controller` (in Nightly builds, run with -Z macro-backtrace for more info)

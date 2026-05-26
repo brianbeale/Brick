@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package brick;
+
+option java_package = "com.brick.proto";
+option java_multiple_files = true;
+
+// ── Blueprint (sent once at mount) ────────────────────────────────────────────
+
+message BrickViewBlueprint {
+  ProtoNode root = 1;
+  repeated SignalDescriptor signals = 2;
+  repeated ActionDescriptor actions = 3;
+}
+
+message SignalDescriptor {
+  int32 id = 1;
+  string initial_value = 2;
+  string value_type = 3;
+}
+
+message ActionDescriptor {
+  string name = 1;
+  string event = 2;
+}
+
+// ── View tree ─────────────────────────────────────────────────────────────────
+
+message ProtoNode {
+  oneof kind {
+    ProtoText text = 1;
+    ProtoButton button = 2;
+    ProtoInput input = 3;
+    ProtoContainer column = 4;
+    ProtoContainer row = 5;
+    ProtoContainer scroll = 6;
+    ProtoToggle toggle = 7;
+    ProtoExternalIntent external_intent = 8;
+    ProtoPermissionRequest permission_request = 9;
+  }
+}
+
+message ProtoText {
+  string static_text = 1;
+  int32 signal_id = 2;
+  // 0=Body 1=Title 2=Caption 3=Label
+  int32 text_variant = 3;
+}
+
+message ProtoButton {
+  string label = 1;
+  string action = 2;
+  string int_action = 3;
+  int32 payload_int = 4;
+  // 0=Primary 1=Secondary 2=Outlined 3=Ghost 4=Danger
+  int32 variant = 5;
+}
+
+message ProtoToggle {
+  string label = 1;
+  uint32 checked_signal_id = 2;
+  string change_action = 3;
+}
+
+message ProtoExternalIntent {
+  string label = 1;
+  // 0=ShareText 1=OpenUrl 2=LaunchCamera 3=PickImage 4=OpenSettings 5=ComposeEmail
+  int32 intent_type = 2;
+  string primary_payload = 3;
+  string secondary_payload = 4;
+}
+
+message ProtoPermissionRequest {
+  string label = 1;
+  string permission = 2;
+  string result_action = 3;
+}
+
+message ProtoInput {
+  string placeholder = 1;
+  int32 value_signal_id = 2;
+  string change_action = 3;
+}
+
+message ProtoContainer {
+  repeated ProtoNode children = 1;
+}
+
+// ── Drain queue (sent every frame) ────────────────────────────────────────────
+
+message SignalBatch {
+  repeated SignalUpdate updates = 1;
+}
+
+message SignalUpdate {
+  int32 signal_id = 1;
+  string value_utf8 = 2;
+}

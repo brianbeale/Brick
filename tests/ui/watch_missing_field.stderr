@@ -1,0 +1,7 @@
+error: #[on(watch)] requires a field name, e.g. #[on(watch, my_field)]
+ --> tests/ui/watch_missing_field.rs:5:1
+  |
+5 | #[controller]
+  | ^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `controller` (in Nightly builds, run with -Z macro-backtrace for more info)
